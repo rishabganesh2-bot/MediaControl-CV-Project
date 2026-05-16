@@ -1,1 +1,7 @@
-# spotify-cv-project
+**Media Control Using Computer Vision**
+This project implements a real-time media controller utilizing MediaPipe Hand Landmarkers and OpenCV to map hand poses directly to OS-level media keys via `pynput`. Posture tracking features a vector-projection pipeline that calculates a normalized unit directional palm axis from the wrist to the middle MCP knuckle ($0 \rightarrow 9$), ensuring orientation-invariant pose classification even when the hand is rotated or tilted. Positional tracking criteria automatically scale dynamically based on the current reference distance of the hand relative to the camera frame.
+
+Swipe Finite State Machine (FSM): Implements an `IDLE` -> `ARMED` -> `TRACKING` -> `FIRED` state pipeline with a 4-frame verification window and spatial anchor-locking to eliminate false positives during transient hand movements.
+Orientation-Aware Posture Metrics: Replaces strict coordinate boundary checks with dot-product projections along the calculated palm axis vector to isolate finger extension and curling independent of gravity.
+Temporal Cooldowns & Grace Periods: Features a configurable temporal lock ($1.2\text{s}$ for swipes, $0.15\text{s}$ for volume) and a 6-frame missed-hand tolerance window to prevent state disruption during brief hardware occlusion or packet drops.
+Asynchronous Input & Low-Pass Filtering: Applies an exponential smoothing filter ($\beta = 0.15$) to raw spatial landmarks and routes confirmed actions through system-level hardware keyboard interrupts to trigger immediate media execution.
