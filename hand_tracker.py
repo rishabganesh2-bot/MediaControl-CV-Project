@@ -20,29 +20,11 @@ class HandTracker:
         )
         return self.landmarker.detect_for_video(mp_image, int(time.time() * 1000))
 
-    # ─────────────────────────────────────────────────────────
-    #  Palm size (ref_dist) — used by GestureController for
-    #  dynamic threshold scaling. Exposed here so there is one
-    #  canonical calculation rather than two diverging copies.
-    # ─────────────────────────────────────────────────────────
     @staticmethod
     def palm_size(lm) -> float:
         """Normalised wrist→middle-MCP distance (landmark 0 → 9)."""
         return math.hypot(lm[9].x - lm[0].x, lm[9].y - lm[0].y)
 
-    # ─────────────────────────────────────────────────────────
-    #  Finger-extension test — orientation-aware
-    #
-    #  The y-axis test (tip.y < pip.y) only works when the hand
-    #  is roughly upright.  If the hand is tilted/sideways the
-    #  wrist→MCP vector is no longer aligned with gravity, so we
-    #  project each fingertip vector onto that reference axis
-    #  instead of comparing raw y values.
-    #
-    #  For each finger we check:
-    #    dot(tip - mcp, palm_axis) > 0   →  finger is "away from palm"
-    #  where palm_axis = normalised (middle_mcp - wrist).
-    # ─────────────────────────────────────────────────────────
     @staticmethod
     def _finger_extended(lm, tip_id: int, mcp_id: int, ax: float, ay: float) -> bool:
         """True when the tip is further along the palm axis than the MCP."""
@@ -67,7 +49,7 @@ class HandTracker:
             return 0.0, -1.0           # fallback: straight up
         return dx / mag, dy / mag
 
-    # ── Public pose detectors (single source of truth) ───────
+
 
     def is_palm_open(self, lm) -> bool:
         """All four fingers extended in the direction of the palm axis."""
@@ -78,11 +60,7 @@ class HandTracker:
         )
 
     def is_two_finger_pose(self, lm) -> bool:
-        """
-        Index and middle extended; ring and pinky curled.
-        Orientation-aware: uses palm-axis projection so the pose
-        is detected correctly even when the hand is tilted sideways.
-        """
+
         ax, ay = self._palm_axis(lm)
         index_up  = self._finger_extended(lm,  8,  5, ax, ay)
         middle_up = self._finger_extended(lm, 12,  9, ax, ay)
@@ -93,7 +71,6 @@ class HandTracker:
     # ── Smoothing ─────────────────────────────────────────────
 
     def get_smoothed_landmarks(self, hand_landmarks, prev_landmarks, beta=0.2):
-        """Low-pass filter: moves beta of the way to the new position each frame."""
         if prev_landmarks is None:
             return hand_landmarks
         smoothed = []

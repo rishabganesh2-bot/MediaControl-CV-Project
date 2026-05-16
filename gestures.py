@@ -9,15 +9,6 @@ def _press_media(key: Key):
     _kb.release(key)
 
 
-# ─────────────────────────────────────────────────────────────
-#  Swipe FSM
-#
-#   IDLE ──(pose held ≥ ARM_FRAMES)──► ARMED
-#   ARMED ──(one frame to lock anchor)──► TRACKING
-#   TRACKING ──(|dx_scaled| >= 1.0 AND not vertical)──► FIRED → IDLE
-#   any state ──(pose lost, grace period expired)──► IDLE
-# ─────────────────────────────────────────────────────────────
-
 _IDLE     = 0
 _ARMED    = 1
 _TRACKING = 2
@@ -25,7 +16,7 @@ _TRACKING = 2
 
 class GestureController:
     def __init__(self):
-        # ── Pinch / volume ───────────────────────────────────
+        #Pinch / volume
         self.smooth_ratio   = 0.5
         self.alpha          = 0.3
         self.is_dragging    = False
@@ -34,16 +25,16 @@ class GestureController:
         self.last_vol_time  = 0.0
         self.vol_cooldown   = 0.15
 
-        # ── Play / pause ─────────────────────────────────────
+        #Play / pause
         self.last_pause_time = 0.0
         self.palm_active     = False
 
-        # ── UI ───────────────────────────────────────────────
+        # UI
         self.state       = "IDLE"
         self.toast_msg   = ""
         self.toast_timer = 0
 
-        # ── Swipe FSM ────────────────────────────────────────
+        #Swipe FSM
         self._fsm         = _IDLE
         self._arm_count   = 0
         self._arm_frames  = 4        
@@ -62,7 +53,7 @@ class GestureController:
         self._grace_count = 0
         self._last_palm_size = 0.05  
 
-        # HUD data ────────────────────────────────────────────
+        # HUD data
         self.swipe_trail : list  = []
         self.arrow_row_y : float = 0.5  
 
@@ -85,7 +76,7 @@ class GestureController:
         center_y = (thumb.y + index.y) / 2
         self._grace_count = 0
 
-        # ── Gesture priority ─────────────────────────────────
+        #Gesture priority
         if self.smooth_ratio < 0.35:
             self.state = "PINCH"
             self._reset_fsm()
@@ -109,9 +100,7 @@ class GestureController:
             self._reset_fsm()
             res = "READY"
 
-        # ── Toast countdown (MODIFIED) ────────────────────────
-        # We only refresh the timer if a physical action occurred.
-        # This prevents "VOL UP" from staying forever while pinching.
+        # Toast countdown
         action_triggered = any(k in res for k in ("VOL UP", "VOL DOWN", "PLAY", "PAUSE", "NEXT", "PREV"))
 
         if action_triggered:
